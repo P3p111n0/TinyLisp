@@ -16,6 +16,12 @@ class Error {
     std::string _msg;
 };
 
-class ParseError : public Error {};
+class ParseError : public Error {
+  public:
+    explicit ParseError(std::string msg) : Error("ParseError: " + msg) {};
+};
 
-class RuntimeError : public Error {};
+class RuntimeError : public Error {
+  public:
+    explicit RuntimeError(std::string msg) : Error("RuntimeError: " + msg) {};
+};

@@ -7,7 +7,7 @@ template<typename T>
 class Result {
   public:
     Result(const Error & err) : _data(err), _valid(false) {};
-    Result(const T & val) : _data(val), _valid(true);
+    Result(const T & val) : _data(val), _valid(true) {};
 
     bool valid() const {
         return _valid;
