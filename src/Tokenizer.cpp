@@ -24,6 +24,9 @@ std::list<Token> Tokenizer::tokenize(const std::string & filename) const {
         case '-':
         case '*':
         case '/':
+        case '<':
+        case '>':
+        case '=':
             result.emplace_back((char)in.get());
             break;
 

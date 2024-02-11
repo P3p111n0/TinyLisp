@@ -61,45 +61,19 @@ Parser::_parse_ex(std::list<Token> & tokens) const {
                 assert(s.size() == 1);
                 return {s.top()};
             }
-            case '+': {
-                assert(s.size() >= 2);
-                auto rhs = s.top();
-                s.pop();
-                auto lhs = s.top();
-                s.pop();
-                s.push(std::shared_ptr<ASTNode>(
-                    new ASTNodeAdd(lhs, rhs)));
-                break;
-            }
-            case '-': {
-                assert(s.size() >= 2);
-                auto rhs = s.top();
-                s.pop();
-                auto lhs = s.top();
-                s.pop();
-                s.push(std::shared_ptr<ASTNode>(
-                    new ASTNodeSub(lhs, rhs)));
-                break;
-            }
-            case '*': {
-                assert(s.size() >= 2);
-                auto rhs = s.top();
-                s.pop();
-                auto lhs = s.top();
-                s.pop();
-                s.push(std::shared_ptr<ASTNode>(
-                    new ASTNodeMul(lhs, rhs)));
-                break;
-            }
-            case '/': {
-                assert(s.size() >= 2);
-                auto rhs = s.top();
-                s.pop();
-                auto lhs = s.top();
-                s.pop();
-                s.push(std::shared_ptr<ASTNode>(
-                    new ASTNodeDiv(lhs, rhs)));
-                break;
+            case '+':
+            case '-':
+            case '*':
+            case '/':
+            case '>':
+            case '<':
+            case '=': {
+                char op = std::get<char>(token.data);
+                if (auto res = _parse_operator(s, op); !res.valid()) {
+                    return res;
+                } else {
+                    s.push(res.value());
+                }
             }
             }
             break;
@@ -115,4 +89,33 @@ Parser::_parse_ex(std::list<Token> & tokens) const {
 
     assert(s.size() == 1);
     return {s.top()};
+}
+
+Result<std::shared_ptr<ASTNode>>
+Parser::_parse_operator(std::stack<std::shared_ptr<ASTNode>> & stack,
+                        char op) const {
+    if (stack.size() < 2) {
+        return {ParseError("Not enough arguments.")};
+    }
+    auto rhs = stack.top(); stack.pop();
+    auto lhs = stack.top(); stack.pop();
+
+    switch(op) {
+    case '+':
+        return std::shared_ptr<ASTNode>(new ASTNodeAdd(lhs, rhs));
+    case '-':
+        return std::shared_ptr<ASTNode>(new ASTNodeSub(lhs, rhs));
+    case '*':
+        return std::shared_ptr<ASTNode>(new ASTNodeMul(lhs, rhs));
+    case '/':
+        return std::shared_ptr<ASTNode>(new ASTNodeDiv(lhs, rhs));
+    case '>':
+        return std::shared_ptr<ASTNode>(new ASTNodeGT(lhs, rhs));
+    case '<':
+        return std::shared_ptr<ASTNode>(new ASTNodeLT(lhs, rhs));
+    case '=':
+        return std::shared_ptr<ASTNode>(new ASTNodeEQ(lhs, rhs));
+    }
+
+    return {ParseError("Invalid operator.")}; // this shouldn't happen
 }

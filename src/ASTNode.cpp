@@ -12,12 +12,9 @@ std::list<std::shared_ptr<SECDInstruction>> ASTNodeOperator::_compile_args() con
     auto compiled_lhs = _lhs->compile();
     auto compiled_rhs = _rhs->compile();
     std::list<std::shared_ptr<SECDInstruction>> res;
-    for (auto & val : compiled_lhs) {
-        res.emplace_back(val);
-    }
-    for (auto & val : compiled_rhs) {
-        res.emplace_back(val);
-    }
+    res.splice(res.end(), compiled_lhs);
+    res.splice(res.end(), compiled_rhs);
+
     return res;
 }
 
@@ -42,5 +39,23 @@ std::list<std::shared_ptr<SECDInstruction>> ASTNodeMul::compile() const {
 std::list<std::shared_ptr<SECDInstruction>> ASTNodeDiv::compile() const {
     auto result = _compile_args();
     result.emplace_back(std::shared_ptr<SECDInstruction>(new DIV()));
+    return result;
+}
+
+std::list<std::shared_ptr<SECDInstruction>> ASTNodeGT::compile() const {
+    auto result = _compile_args();
+    result.emplace_back(std::shared_ptr<SECDInstruction>(new GT()));
+    return result;
+}
+
+std::list<std::shared_ptr<SECDInstruction>> ASTNodeLT::compile() const {
+    auto result = _compile_args();
+    result.emplace_back(std::shared_ptr<SECDInstruction>(new LT()));
+    return result;
+}
+
+std::list<std::shared_ptr<SECDInstruction>> ASTNodeEQ::compile() const {
+    auto result = _compile_args();
+    result.emplace_back(std::shared_ptr<SECDInstruction>(new EQ()));
     return result;
 }

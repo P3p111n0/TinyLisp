@@ -55,3 +55,18 @@ class NIL : public SECDInstruction {
   public:
     std::optional<Error> execute(SECDRuntime &) const override;
 };
+
+class GT : public ArithmeticInstruction {
+  public:
+    std::optional<Error> execute(SECDRuntime &) const override;
+};
+
+class LT : public ArithmeticInstruction {
+  public:
+    std::optional<Error> execute(SECDRuntime &) const override;
+};
+
+class EQ : public ArithmeticInstruction {
+  public:
+    std::optional<Error> execute(SECDRuntime &) const override;
+};

@@ -14,8 +14,9 @@ class Parser {
     Result<std::list<std::shared_ptr<ASTNode>>> parse(std::list<Token>) const;
 
   private:
-    Result<std::shared_ptr<ASTNode>>
-    _parse(std::list<Token> &) const;
+    Result<std::shared_ptr<ASTNode>> _parse(std::list<Token> &) const;
     Result<std::shared_ptr<ASTNode>> _parse_ex(std::list<Token> &) const;
+    Result<std::shared_ptr<ASTNode>>
+    _parse_operator(std::stack<std::shared_ptr<ASTNode>> &, char) const;
     std::set<std::string> _builtin;
 };

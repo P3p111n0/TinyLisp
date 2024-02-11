@@ -67,3 +67,33 @@ std::optional<Error> DIV::execute(SECDRuntime & runtime) const {
     runtime.stack.emplace(args.lhs / args.rhs);
     return std::nullopt;
 }
+
+std::optional<Error> GT::execute(SECDRuntime & runtime) const {
+    auto args_res = _get_args(runtime);
+    if (!args_res.valid()) {
+        return {args_res.error()};
+    }
+    auto args = args_res.value();
+    runtime.stack.emplace(args.lhs > args.rhs);
+    return std::nullopt;
+}
+
+std::optional<Error> LT::execute(SECDRuntime & runtime) const {
+    auto args_res = _get_args(runtime);
+    if (!args_res.valid()) {
+        return {args_res.error()};
+    }
+    auto args = args_res.value();
+    runtime.stack.emplace(args.lhs < args.rhs);
+    return std::nullopt;
+}
+
+std::optional<Error> EQ::execute(SECDRuntime & runtime) const {
+    auto args_res = _get_args(runtime);
+    if (!args_res.valid()) {
+        return {args_res.error()};
+    }
+    auto args = args_res.value();
+    runtime.stack.emplace(args.lhs == args.rhs);
+    return std::nullopt;
+}

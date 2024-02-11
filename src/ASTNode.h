@@ -74,3 +74,24 @@ class ASTNodeCons : public ASTNode {
     std::shared_ptr<ASTNode> _car;
     std::shared_ptr<ASTNode> _cdr;
 };
+
+class ASTNodeGT : public ASTNodeOperator {
+  public:
+    ASTNodeGT(std::shared_ptr<ASTNode> lhs, std::shared_ptr<ASTNode> rhs)
+        : ASTNodeOperator(lhs, rhs){};
+    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+};
+
+class ASTNodeLT : public ASTNodeOperator {
+  public:
+    ASTNodeLT(std::shared_ptr<ASTNode> lhs, std::shared_ptr<ASTNode> rhs)
+        : ASTNodeOperator(lhs, rhs){};
+    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+};
+
+class ASTNodeEQ : public ASTNodeOperator {
+  public:
+    ASTNodeEQ(std::shared_ptr<ASTNode> lhs, std::shared_ptr<ASTNode> rhs)
+        : ASTNodeOperator(lhs, rhs){};
+    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+};
