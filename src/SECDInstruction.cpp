@@ -64,6 +64,9 @@ std::optional<Error> DIV::execute(SECDRuntime & runtime) const {
         return {args_res.error()};
     }
     auto args = args_res.value();
+    if (!args.rhs) {
+        return {RuntimeError("Division by zero.")};
+    }
     runtime.stack.emplace(args.lhs / args.rhs);
     return std::nullopt;
 }
