@@ -32,7 +32,7 @@ std::list<Token> Tokenizer::tokenize(const std::string & filename) const {
 
         default:
             if (auto str = _tokenize_string(in); !str.empty()) {
-                result.emplace_back(_tokenize_string(in));
+                result.emplace_back(str);
             }
         }
     }

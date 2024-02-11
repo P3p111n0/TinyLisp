@@ -70,3 +70,23 @@ class EQ : public ArithmeticInstruction {
   public:
     std::optional<Error> execute(SECDRuntime &) const override;
 };
+
+class InstructionGlob : public SECDInstruction {
+  public:
+    InstructionGlob(std::list<std::shared_ptr<SECDInstruction>> lst) : _inst(std::move(lst)) {};
+    std::optional<Error> execute(SECDRuntime &) const override;
+  private:
+    std::list<std::shared_ptr<SECDInstruction>> _inst;
+};
+
+class SEL : public SECDInstruction {
+  public:
+    std::optional<Error> execute(SECDRuntime &) const override;
+  private:
+    std::optional<Error> _select_branch(SECDRuntime &, bool) const;
+};
+
+class JOIN : public SECDInstruction {
+  public:
+    std::optional<Error> execute(SECDRuntime &) const override;
+};

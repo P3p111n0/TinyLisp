@@ -59,3 +59,20 @@ std::list<std::shared_ptr<SECDInstruction>> ASTNodeEQ::compile() const {
     result.emplace_back(std::shared_ptr<SECDInstruction>(new EQ()));
     return result;
 }
+
+std::list<std::shared_ptr<SECDInstruction>> ASTNodeIf::compile() const {
+    std::list<std::shared_ptr<SECDInstruction>> res;
+    res.splice(res.end(), _cond->compile());
+    res.emplace_back(new SEL());
+    auto tb_code = _tb->compile();
+    auto fb_code = _fb->compile();
+//    tb_code.emplace_back(new JOIN());
+//    fb_code.emplace_back(new JOIN());
+    res.emplace_back(new InstructionGlob(tb_code));
+    res.emplace_back(new InstructionGlob(fb_code));
+    return res;
+}
+
+std::list<std::shared_ptr<SECDInstruction>> ASTNodeIdentifier::compile() const {
+    return {}; // TODO
+}

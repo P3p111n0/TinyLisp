@@ -95,3 +95,25 @@ class ASTNodeEQ : public ASTNodeOperator {
         : ASTNodeOperator(lhs, rhs){};
     std::list<std::shared_ptr<SECDInstruction>> compile() const override;
 };
+
+class ASTNodeIdentifier : public ASTNode {
+  public:
+    ASTNodeIdentifier(std::string val) : _val(std::move(val)){};
+    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+
+  private:
+    std::string _val;
+};
+
+class ASTNodeIf : public ASTNode {
+  public:
+    ASTNodeIf(std::shared_ptr<ASTNode> cond, std::shared_ptr<ASTNode> tb,
+              std::shared_ptr<ASTNode> fb)
+        : _cond(cond), _tb(tb), _fb(fb){};
+    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+
+  private:
+    std::shared_ptr<ASTNode> _cond;
+    std::shared_ptr<ASTNode> _tb;
+    std::shared_ptr<ASTNode> _fb;
+};
