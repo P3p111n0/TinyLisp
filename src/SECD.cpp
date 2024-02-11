@@ -11,8 +11,14 @@ std::optional<Error> SECD::run(std::list<std::shared_ptr<SECDInstruction>> code)
         }
     }
 
+    std::stack<Value> print_stack;
     while(!_runtime.stack.empty()) {
-        auto val = _runtime.stack.top(); _runtime.stack.pop();
+        print_stack.push(_runtime.stack.top());
+        _runtime.stack.pop();
+    }
+
+    while(!print_stack.empty()) {
+        auto val = print_stack.top(); print_stack.pop();
         switch(val.index()) {
         case (size_t)ValueIndex::Int:
             std::cout << std::get<int>(val) << std::endl;
