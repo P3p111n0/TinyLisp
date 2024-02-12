@@ -19,7 +19,7 @@ struct Cons {
     std::shared_ptr<Value> cdr;
 };
 
-std::ostream & operator<<(std::ostream & os, const Value & val) {
+inline std::ostream & operator<<(std::ostream & os, const Value & val) {
     switch(val.index()) {
     case ValueIndex::Int:
         return os << std::get<int>(val);
@@ -32,6 +32,7 @@ std::ostream & operator<<(std::ostream & os, const Value & val) {
         return os << "( " << *cell.car << " . " << *cell.cdr << " )";
     }
     }
+    return os; // this shouldn't happen
 }
 
 } // namespace Value
