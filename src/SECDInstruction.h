@@ -90,3 +90,8 @@ class JOIN : public SECDInstruction {
   public:
     std::optional<Error> execute(SECDRuntime &) const override;
 };
+
+class CONS : public SECDInstruction {
+  public:
+    std::optional<Error> execute(SECDRuntime &) const override;
+};

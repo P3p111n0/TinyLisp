@@ -76,3 +76,11 @@ std::list<std::shared_ptr<SECDInstruction>> ASTNodeIf::compile() const {
 std::list<std::shared_ptr<SECDInstruction>> ASTNodeIdentifier::compile() const {
     return {}; // TODO
 }
+
+std::list<std::shared_ptr<SECDInstruction>> ASTNodeCons::compile() const {
+    std::list<std::shared_ptr<SECDInstruction>> res;
+    res.splice(res.end(), _cdr->compile());
+    res.splice(res.end(), _car->compile());
+    res.emplace_back(new CONS());
+    return res;
+}

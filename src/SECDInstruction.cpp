@@ -144,3 +144,14 @@ std::optional<Error> SEL::execute(SECDRuntime & runtime) const {
         return {RuntimeError("SEL - Invalid condition data type.")};
     }
 }
+
+std::optional<Error> CONS::execute(SECDRuntime & runtime) const {
+    if (runtime.stack.size() < 2) {
+        return {RuntimeError("CONS - Not enough arguments.")};
+    }
+
+    Value::Value car = runtime.stack.top(); runtime.stack.pop();
+    Value::Value cdr = runtime.stack.top(); runtime.stack.pop();
+    runtime.stack.push(Value::Cons(car, cdr));
+    return std::nullopt;
+}
