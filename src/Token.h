@@ -3,6 +3,11 @@
 #include <string>
 #include <variant>
 
-struct Token {
-    std::variant<char, int, std::string> data;
-};
+namespace Token {
+    enum TokenIndex {
+        Char,
+        Int,
+        String
+    };
+    using Token = std::variant<char, int, std::string>;
+}

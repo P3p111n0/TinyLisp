@@ -7,24 +7,24 @@ std::unordered_map<std::string, Parser::ParserFunctions::ParseFunction>
         {"if", Parser::ParserFunctions::_parse_if}};
 
 Result<std::shared_ptr<ASTNode>>
-Parser::ParserFunctions::_parse(std::list<Token> & tokens) {
+Parser::ParserFunctions::_parse(std::list<Token::Token> & tokens) {
     assert(!tokens.empty());
-    Token curr = tokens.front();
+    Token::Token curr = tokens.front();
     tokens.pop_front();
-    switch (curr.data.index()) {
-    case 0: { // char
-        switch (std::get<char>(curr.data)) {
+    switch (curr.index()) {
+    case Token::TokenIndex::Char: {
+        switch (std::get<char>(curr)) {
         case '(':
             return _parse_ex(tokens);
         case ')':
             return {ParseError("Unpaired closing parenthesis.")};
         }
         }
-    case 1: // int
+    case Token::TokenIndex::Int:
         return {
-            std::shared_ptr<ASTNode>(new ASTNodeInt(std::get<int>(curr.data)))};
-    case 2: { // string
-        std::string val = std::get<std::string>(curr.data);
+            std::shared_ptr<ASTNode>(new ASTNodeInt(std::get<int>(curr)))};
+    case Token::TokenIndex::String: {
+        std::string val = std::get<std::string>(curr);
         if (_parse_map.contains(val)) {
             auto parse_func = _parse_map[val];
             if (auto res = parse_func(tokens); !res.valid()) {
@@ -42,14 +42,14 @@ Parser::ParserFunctions::_parse(std::list<Token> & tokens) {
 }
 
 Result<std::shared_ptr<ASTNode>>
-Parser::ParserFunctions::_parse_ex(std::list<Token> & tokens) {
+Parser::ParserFunctions::_parse_ex(std::list<Token::Token> & tokens) {
     std::stack<std::shared_ptr<ASTNode>> s;
     while (!tokens.empty()) {
         auto token = tokens.front();
         tokens.pop_front();
-        switch (token.data.index()) {
-        case 0: { // char
-            switch (std::get<char>(token.data)) {
+        switch (token.index()) {
+        case Token::TokenIndex::Char: {
+            switch (std::get<char>(token)) {
             case '(': {
                 if (auto ret = _parse_ex(tokens); ret.valid()) {
                     s.emplace(ret.value());
@@ -69,7 +69,7 @@ Parser::ParserFunctions::_parse_ex(std::list<Token> & tokens) {
             case '>':
             case '<':
             case '=': {
-                char op = std::get<char>(token.data);
+                char op = std::get<char>(token);
                 if (auto res = _parse_operator(s, op); !res.valid()) {
                     return res;
                 } else {
@@ -79,12 +79,12 @@ Parser::ParserFunctions::_parse_ex(std::list<Token> & tokens) {
             }
             break;
         }
-        case 1: // int
+        case Token::TokenIndex::Int:
             s.push(std::shared_ptr<ASTNode>(
-                new ASTNodeInt(std::get<int>(token.data))));
+                new ASTNodeInt(std::get<int>(token))));
             break;
-        case 2: { // string
-            std::string val = std::get<std::string>(token.data);
+        case Token::TokenIndex::String: {
+            std::string val = std::get<std::string>(token);
             if (_parse_map.contains(val)) {
                 auto parse_func = _parse_map[val];
                 if (auto res = parse_func(tokens); !res.valid()) {
@@ -134,7 +134,7 @@ Result<std::shared_ptr<ASTNode>> Parser::ParserFunctions::_parse_operator(
 }
 
 Result<std::shared_ptr<ASTNode>>
-Parser::ParserFunctions::_parse_if(std::list<Token> & tokens) {
+Parser::ParserFunctions::_parse_if(std::list<Token::Token> & tokens) {
     auto cond = _parse(tokens);
     if (!cond.valid()) {
         return cond;
@@ -148,7 +148,7 @@ Parser::ParserFunctions::_parse_if(std::list<Token> & tokens) {
         return fb;
     }
 
-    if (tokens.front().data.index() != 0 || std::get<char>(tokens.front().data) != ')') {
+    if (tokens.front().index() != 0 || std::get<char>(tokens.front()) != ')') {
         return {ParseError("If statement missing closing parenthesis.")};
     }
 
@@ -161,7 +161,7 @@ Parser::ParserFunctions::_parse_if(std::list<Token> & tokens) {
 Parser::Parser() : _builtin({"let", "letrec", "lambda", "if", "nil", "cons"}){};
 
 Result<std::list<std::shared_ptr<ASTNode>>>
-Parser::parse(std::list<Token> tokens) const {
+Parser::parse(std::list<Token::Token> tokens) const {
     std::list<std::shared_ptr<ASTNode>> result;
     while (!tokens.empty()) {
         auto parsed_node = ParserFunctions::_parse(tokens);

@@ -1,10 +1,9 @@
 #include "Tokenizer.h"
 #include <fstream>
 
-std::list<Token> Tokenizer::tokenize(const std::string & filename) const {
+std::list<Token::Token> Tokenizer::tokenize(const std::string & filename) const {
     std::ifstream in(filename);
-
-    std::list<Token> result;
+    std::list<Token::Token> result;
 
     while(!in.eof()) {
         if (isspace(in.peek())) {

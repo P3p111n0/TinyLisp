@@ -20,8 +20,8 @@ ArithmeticInstruction::_get_args(SECDRuntime & runtime) const {
     auto lhs = runtime.stack.top();
     runtime.stack.pop();
 
-    if (rhs.index() != (size_t)ValueIndex::Int ||
-        lhs.index() != (size_t)ValueIndex::Int) {
+    if (rhs.index() != Value::ValueIndex::Int ||
+        lhs.index() != Value::ValueIndex::Int) {
         return {RuntimeError("Invalid operand type.")};
     }
 
@@ -131,13 +131,13 @@ std::optional<Error> SEL::execute(SECDRuntime & runtime) const {
     if (runtime.stack.size() < 1) {
         return {RuntimeError("SEL - Not enough arguments.")};
     }
-    Value cond = runtime.stack.top();
+    Value::Value cond = runtime.stack.top();
     runtime.stack.pop();
     switch (cond.index()) {
-    case (size_t)ValueIndex::Bool: {
+    case Value::ValueIndex::Bool: {
         return _select_branch(runtime, std::get<bool>(cond));
     }
-    case (size_t)ValueIndex::Int: {
+    case Value::ValueIndex::Int: {
         return _select_branch(runtime, (bool)std::get<int>(cond));
     }
     default:

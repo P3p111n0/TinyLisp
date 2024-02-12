@@ -12,7 +12,7 @@ SECD::run(std::list<std::shared_ptr<SECDInstruction>> code) {
         }
     }
 
-    std::stack<Value> print_stack;
+    std::stack<Value::Value> print_stack;
     while (!_runtime.stack.empty()) {
         print_stack.push(_runtime.stack.top());
         _runtime.stack.pop();
@@ -22,13 +22,13 @@ SECD::run(std::list<std::shared_ptr<SECDInstruction>> code) {
         auto val = print_stack.top();
         print_stack.pop();
         switch (val.index()) {
-        case (size_t)ValueIndex::Int:
+        case Value::ValueIndex::Int:
             std::cout << std::get<int>(val) << std::endl;
             break;
-        case (size_t)ValueIndex::Bool:
+        case Value::ValueIndex::Bool:
             std::cout << (std::get<bool>(val) ? "true" : "false") << std::endl;
             break;
-        case (size_t)ValueIndex::Nullptr_t:
+        case Value::ValueIndex::Nullptr_t:
             std::cout << "NIL" << std::endl;
             break;
         }
