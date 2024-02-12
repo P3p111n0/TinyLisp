@@ -11,9 +11,13 @@ int main(int argc, const char ** argv) {
 
     Tokenizer t;
     auto tokens = t.tokenize(argv[1]);
+    if (!tokens.valid()) {
+        std::cout << tokens.error() << std::endl;
+        return 1;
+    }
 
     Parser p;
-    auto ast = p.parse(tokens);
+    auto ast = p.parse(tokens.value());
     if (!ast.valid()) {
         std::cout << ast.error() << std::endl;
         return 1;

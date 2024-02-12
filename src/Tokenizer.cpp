@@ -1,8 +1,11 @@
 #include "Tokenizer.h"
 #include <fstream>
 
-std::list<Token::Token> Tokenizer::tokenize(const std::string & filename) const {
+Result<std::list<Token::Token>> Tokenizer::tokenize(const std::string & filename) const {
     std::ifstream in(filename);
+    if (!in.is_open() || in.bad() || in.fail()) {
+        return {ParseError("Couldn't read from file: " + filename)};
+    }
     std::list<Token::Token> result;
 
     while(!in.eof()) {
@@ -36,7 +39,7 @@ std::list<Token::Token> Tokenizer::tokenize(const std::string & filename) const 
         }
     }
 
-    return result;
+    return {result};
 }
 
 std::string Tokenizer::_tokenize_string(std::ifstream & in) const {
