@@ -21,17 +21,7 @@ SECD::run(std::list<std::shared_ptr<SECDInstruction>> code) {
     while (!print_stack.empty()) {
         auto val = print_stack.top();
         print_stack.pop();
-        switch (val.index()) {
-        case Value::ValueIndex::Int:
-            std::cout << std::get<int>(val) << std::endl;
-            break;
-        case Value::ValueIndex::Bool:
-            std::cout << (std::get<bool>(val) ? "true" : "false") << std::endl;
-            break;
-        case Value::ValueIndex::Nullptr_t:
-            std::cout << "NIL" << std::endl;
-            break;
-        }
+        std::cout << val << std::endl;
     }
 
     return std::nullopt;
