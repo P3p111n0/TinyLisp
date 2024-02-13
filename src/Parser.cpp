@@ -5,7 +5,9 @@
 std::unordered_map<std::string, Parser::ParserFunctions::ParseFunction>
     Parser::ParserFunctions::_parse_map{
         {"if", Parser::ParserFunctions::_parse_if},
-        {"cons", Parser::ParserFunctions::_parse_cons}
+        {"cons", Parser::ParserFunctions::_parse_cons},
+        {"true", [](std::list<Token::Token> &) {return std::shared_ptr<ASTNode>(new ASTNodeInt(1));}},
+        {"false", [](std::list<Token::Token> &) {return std::shared_ptr<ASTNode>(new ASTNodeInt(0));}}
     };
 
 inline bool Parser::ParserFunctions::_check_closing_parenthesis(
