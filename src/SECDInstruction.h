@@ -113,3 +113,20 @@ class LD : public SECDInstruction {
   private:
     IndexPair _idx;
 };
+
+class LDF : public SECDInstruction {
+  public:
+    std::optional<Error> execute(SECDRuntime &) const override;
+};
+
+class AP : public SECDInstruction {
+  public:
+    std::optional<Error> execute(SECDRuntime &) const override;
+  private:
+    std::list<Value::Value> _cons_to_list(const Value::Cons &) const;
+};
+
+class RTN : public SECDInstruction {
+  public:
+    std::optional<Error> execute(SECDRuntime &) const override;
+};

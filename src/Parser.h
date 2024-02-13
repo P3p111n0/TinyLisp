@@ -27,7 +27,7 @@ class Parser {
         static Result<std::shared_ptr<ASTNode>>
         _parse_operator(std::stack<std::shared_ptr<ASTNode>> &, char);
         static inline bool
-        _check_closing_parenthesis(const std::list<Token::Token> &);
+        _check_char(const std::list<Token::Token> &, char);
         static Result<std::shared_ptr<ASTNode>>
         _parse_cons(std::list<Token::Token> &);
         static Result<std::list<std::shared_ptr<ASTNode>>>
@@ -36,6 +36,8 @@ class Parser {
         _parse_car(std::list<Token::Token> &);
         static Result<std::shared_ptr<ASTNode>>
         _parse_cdr(std::list<Token::Token> &);
+        static Result<std::shared_ptr<ASTNode>>
+        _parse_lambda(std::list<Token::Token> &);
 
         using ParseFunction = std::function<Result<std::shared_ptr<ASTNode>>(
             std::list<Token::Token> &)>;

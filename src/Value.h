@@ -1,14 +1,15 @@
 #pragma once
 
+#include "Closure.h"
 #include <memory>
 #include <variant>
 #include <iostream>
 
 namespace Value {
-enum ValueIndex { Nullptr_t, Bool, Int, ConsCell };
+enum ValueIndex { Nullptr_t, Bool, Int, ConsCell, FunctionClosure };
 
 struct Cons;
-using Value = std::variant<nullptr_t, bool, int, Cons>;
+using Value = std::variant<nullptr_t, bool, int, Cons, Closure>;
 struct Cons {
     Cons(const Value & car_, const Value & cdr_)
         : car(std::make_shared<Value>(car_)),

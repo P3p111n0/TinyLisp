@@ -34,9 +34,11 @@ class ASTNodeOperator : public ASTNode {
         : _rhs(rhs), _lhs(lhs){};
 
   protected:
-    Result<std::list<std::shared_ptr<SECDInstruction>>> _compile_args(std::shared_ptr<CTEnv>) const;
     Result<std::list<std::shared_ptr<SECDInstruction>>>
-    _compile_op(const std::shared_ptr<SECDInstruction> &, std::shared_ptr<CTEnv>) const;
+        _compile_args(std::shared_ptr<CTEnv>) const;
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+    _compile_op(const std::shared_ptr<SECDInstruction> &,
+                std::shared_ptr<CTEnv>) const;
     std::shared_ptr<ASTNode> _rhs;
     std::shared_ptr<ASTNode> _lhs;
 };
@@ -139,7 +141,8 @@ class ASTNodeConsOperator : public ASTNode {
 
   protected:
     Result<std::list<std::shared_ptr<SECDInstruction>>>
-    _compile(const std::shared_ptr<SECDInstruction> &, std::shared_ptr<CTEnv>) const;
+    _compile(const std::shared_ptr<SECDInstruction> &,
+             std::shared_ptr<CTEnv>) const;
     std::shared_ptr<ASTNode> _cons;
 };
 
@@ -155,4 +158,16 @@ class ASTNodeCdr : public ASTNodeConsOperator {
     ASTNodeCdr(std::shared_ptr<ASTNode> cell) : ASTNodeConsOperator(cell){};
     Result<std::list<std::shared_ptr<SECDInstruction>>>
         compile(std::shared_ptr<CTEnv>) const override;
+};
+
+class ASTNodeLambda : public ASTNode {
+  public:
+    ASTNodeLambda(std::list<std::string> args,
+                  std::list<std::shared_ptr<ASTNode>> body)
+        : _args(std::move(args)), _body(std::move(body)){};
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
+  private:
+    std::list<std::string> _args;
+    std::list<std::shared_ptr<ASTNode>> _body;
 };

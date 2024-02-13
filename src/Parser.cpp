@@ -10,20 +10,21 @@ std::unordered_map<std::string, Parser::ParserFunctions::ParseFunction>
          [](std::list<Token::Token> &) {
              return std::shared_ptr<ASTNode>(new ASTNodeInt(1));
          }},
-        {"false", [](std::list<Token::Token> &) {
+        {"false",
+         [](std::list<Token::Token> &) {
              return std::shared_ptr<ASTNode>(new ASTNodeInt(0));
          }},
-        {"null", [](std::list<Token::Token> &) {
+        {"null",
+         [](std::list<Token::Token> &) {
              return std::shared_ptr<ASTNode>(new ASTNodeNull);
          }},
         {"car", Parser::ParserFunctions::_parse_car},
         {"cdr", Parser::ParserFunctions::_parse_cdr},
-    };
+        {"lambda", Parser::ParserFunctions::_parse_lambda}};
 
-inline bool Parser::ParserFunctions::_check_closing_parenthesis(
-    const std::list<Token::Token> & tokens) {
-    return tokens.front().index() == Token::TokenIndex::Char &&
-           std::get<char>(tokens.front()) == ')';
+inline bool Parser::ParserFunctions::_check_char(const std::list<Token::Token> & tokens, char c){
+    return !tokens.empty() && tokens.front().index() == Token::TokenIndex::Char &&
+           std::get<char>(tokens.front()) == c;
 }
 
 Result<std::list<std::shared_ptr<ASTNode>>>
@@ -179,7 +180,7 @@ Parser::ParserFunctions::_parse_if(std::list<Token::Token> & tokens) {
     auto fb = args_list.front();
     args_list.pop_front();
 
-    if (!_check_closing_parenthesis(tokens)) {
+    if (!_check_char(tokens, ')')) {
         return {ParseError("If statement missing closing parenthesis.")};
     }
 
@@ -200,7 +201,7 @@ Parser::ParserFunctions::_parse_cons(std::list<Token::Token> & tokens) {
     auto cdr = args_list.front();
     args_list.pop_front();
 
-    if (!_check_closing_parenthesis(tokens)) {
+    if (!_check_char(tokens, ')')) {
         return {ParseError("Cons missing closing parenthesis.")};
     }
 
@@ -212,13 +213,14 @@ Parser::ParserFunctions::_parse_cons(std::list<Token::Token> & tokens) {
 Result<std::shared_ptr<ASTNode>>
 Parser::ParserFunctions::_parse_car(std::list<Token::Token> & tokens) {
     auto args = _parse_args(tokens, 1);
-    if (!args.valid()){
+    if (!args.valid()) {
         return {args.error()};
     }
     auto args_list = args.value();
-    auto cell = args_list.front(); args_list.pop_front();
+    auto cell = args_list.front();
+    args_list.pop_front();
 
-    if (!_check_closing_parenthesis(tokens)) {
+    if (!_check_char(tokens, ')')) {
         return {ParseError("Car missing closing parenthesis.")};
     }
 
@@ -230,19 +232,56 @@ Parser::ParserFunctions::_parse_car(std::list<Token::Token> & tokens) {
 Result<std::shared_ptr<ASTNode>>
 Parser::ParserFunctions::_parse_cdr(std::list<Token::Token> & tokens) {
     auto args = _parse_args(tokens, 1);
-    if (!args.valid()){
+    if (!args.valid()) {
         return {args.error()};
     }
     auto args_list = args.value();
-    auto cell = args_list.front(); args_list.pop_front();
+    auto cell = args_list.front();
+    args_list.pop_front();
 
-    if (!_check_closing_parenthesis(tokens)) {
+    if (!_check_char(tokens, ')')) {
         return {ParseError("Cdr missing closing parenthesis.")};
     }
 
     tokens.pop_front();
 
     return {std::shared_ptr<ASTNode>(new ASTNodeCdr(cell))};
+}
+
+Result<std::shared_ptr<ASTNode>>
+Parser::ParserFunctions::_parse_lambda(std::list<Token::Token> & tokens) {
+    if (!_check_char(tokens, '(')) {
+        return {ParseError("Lambda missing opening arg parenthesis")};
+    }
+    tokens.pop_front();
+
+    std::list<std::string> args;
+    while (!tokens.empty() && !_check_char(tokens, ')')) {
+        auto token = tokens.front();
+        if (token.index() != Token::TokenIndex::String) {
+            return {ParseError("Invalid symbol in lambda declaration.")};
+        }
+        args.emplace_back(std::get<std::string>(token));
+        tokens.pop_front();
+    }
+    if (tokens.empty()) {
+        return {ParseError("Unexpected end of file while parsing lambda args.")};
+    }
+    tokens.pop_front();
+
+    std::list<std::shared_ptr<ASTNode>> body;
+    while (!tokens.empty() && !_check_char(tokens, ')')) {
+        auto expr = _parse(tokens);
+        if (!expr.valid()) {
+            return expr;
+        }
+        body.emplace_back(expr.value());
+    }
+    if (tokens.empty()) {
+        return {ParseError("Unexpected end of file while parsing lambda body.")};
+    }
+    tokens.pop_front();
+    return {std::shared_ptr<ASTNode>(new ASTNodeLambda(args, body))};
 }
 
 Parser::Parser() : _builtin({"let", "letrec", "lambda", "if", "nil", "cons"}){};

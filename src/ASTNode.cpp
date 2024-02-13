@@ -146,3 +146,24 @@ Result<std::list<std::shared_ptr<SECDInstruction>>>
 ASTNodeCdr::compile(std::shared_ptr<CTEnv> env) const {
     return _compile(std::shared_ptr<SECDInstruction>(new CDR()), env);
 }
+
+Result<std::list<std::shared_ptr<SECDInstruction>>> ASTNodeLambda::compile(std::shared_ptr<CTEnv> env) const {
+    std::shared_ptr<CTEnv> child_env = CTEnv::derive(env);
+    for (const auto & id : _args) {
+        child_env->add(id);
+    }
+    std::list<std::shared_ptr<SECDInstruction>> body_code;
+    for (const auto & node : _body) {
+        auto code = node->compile(child_env);
+        if (!code.valid()) {
+            return code;
+        }
+        body_code.splice(body_code.end(), code.value());
+    }
+    body_code.emplace_back(new RTN());
+
+    std::list<std::shared_ptr<SECDInstruction>> res;
+    res.emplace_back(new LDF());
+    res.emplace_back(new InstructionGlob(std::move(body_code)));
+    return {res};
+}
