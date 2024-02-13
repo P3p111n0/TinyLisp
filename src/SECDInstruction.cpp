@@ -185,3 +185,12 @@ std::optional<Error> CDR::execute(SECDRuntime & runtime) const {
     runtime.stack.emplace(*cell.cdr);
     return std::nullopt;
 }
+
+std::optional<Error> LD::execute(SECDRuntime & runtime) const {
+    Result<Value::Value> res = runtime.env.find(_name);
+    if (!res.valid()) {
+        return {res.error()};
+    }
+    runtime.stack.emplace(res.value());
+    return std::nullopt;
+}

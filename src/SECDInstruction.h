@@ -105,3 +105,11 @@ class CDR : public SECDInstruction {
   public:
     std::optional<Error> execute(SECDRuntime &) const override;
 };
+
+class LD : public SECDInstruction {
+  public:
+    LD(std::string name) : _name(name ) {};
+    std::optional<Error> execute(SECDRuntime &) const override;
+  private:
+    std::string _name;
+};

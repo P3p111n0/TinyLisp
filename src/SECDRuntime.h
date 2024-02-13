@@ -1,10 +1,12 @@
 #pragma once
 
+#include "Result.h"
 #include <list>
 #include <memory>
 #include <stack>
 #include <variant>
 #include <iostream>
+#include <unordered_map>
 
 namespace Value {
 enum ValueIndex { Nullptr_t, Bool, Int, ConsCell };
@@ -19,23 +21,21 @@ struct Cons {
     std::shared_ptr<Value> cdr;
 };
 
-inline std::ostream & operator<<(std::ostream & os, const Value & val) {
-    switch(val.index()) {
-    case ValueIndex::Int:
-        return os << std::get<int>(val);
-    case ValueIndex::Bool:
-        return os << (std::get<bool>(val) ? "true" : "false");
-    case ValueIndex::Nullptr_t:
-        return os << "NIL";
-    case ValueIndex::ConsCell: {
-        Cons cell = std::get<Cons>(val);
-        return os << "( " << *cell.car << " . " << *cell.cdr << " )";
-    }
-    }
-    return os; // this shouldn't happen
-}
+std::ostream & operator<<(std::ostream & os, const Value & val);
 
 } // namespace Value
+
+class Environment {
+  public:
+    Environment() = default;
+    Result<Value::Value> find(const std::string &) const;
+    void insert(const std::string &, const Value::Value &);
+    Environment start_child();
+
+  private:
+    std::unordered_map<std::string, Value::Value> _env;
+    Environment * _parent;
+};
 
 class SECDInstruction;
 
@@ -43,4 +43,5 @@ struct SECDRuntime {
     SECDRuntime() = default;
     std::stack<Value::Value> stack;
     std::list<std::shared_ptr<SECDInstruction>> code;
+    Environment env;
 };

@@ -74,7 +74,7 @@ std::list<std::shared_ptr<SECDInstruction>> ASTNodeIf::compile() const {
 }
 
 std::list<std::shared_ptr<SECDInstruction>> ASTNodeIdentifier::compile() const {
-    return {}; // TODO
+    return {std::shared_ptr<SECDInstruction>(new LD(_val))};
 }
 
 std::list<std::shared_ptr<SECDInstruction>> ASTNodeCons::compile() const {
