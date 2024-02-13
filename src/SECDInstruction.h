@@ -108,8 +108,8 @@ class CDR : public SECDInstruction {
 
 class LD : public SECDInstruction {
   public:
-    LD(std::string name) : _name(name ) {};
+    LD(IndexPair idx) : _idx(std::move(idx)) {};
     std::optional<Error> execute(SECDRuntime &) const override;
   private:
-    std::string _name;
+    IndexPair _idx;
 };

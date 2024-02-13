@@ -1,4 +1,5 @@
 #include "SECDInstruction.h"
+#include "Value.h"
 
 std::optional<Error> LDC::execute(SECDRuntime & runtime) const {
     runtime.stack.emplace(_val);
@@ -187,10 +188,10 @@ std::optional<Error> CDR::execute(SECDRuntime & runtime) const {
 }
 
 std::optional<Error> LD::execute(SECDRuntime & runtime) const {
-    Result<Value::Value> res = runtime.env.find(_name);
-    if (!res.valid()) {
-        return {res.error()};
+    auto val = runtime.env.get(_idx);
+    if (!val.valid()) {
+        return {val.error()};
     }
-    runtime.stack.emplace(res.value());
+    runtime.stack.emplace(val.value());
     return std::nullopt;
 }

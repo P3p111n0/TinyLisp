@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Environment.h"
 #include "SECDInstruction.h"
 #include <list>
 #include <memory>
@@ -7,13 +8,15 @@
 class ASTNode {
   public:
     virtual ~ASTNode() = default;
-    virtual std::list<std::shared_ptr<SECDInstruction>> compile() const = 0;
+    virtual Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const = 0;
 };
 
 class ASTNodeInt : public ASTNode {
   public:
     ASTNodeInt(int val) : _val(val) {}
-    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
 
   private:
     int _val;
@@ -21,7 +24,8 @@ class ASTNodeInt : public ASTNode {
 
 class ASTNodeNull : public ASTNode {
   public:
-    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
 };
 
 class ASTNodeOperator : public ASTNode {
@@ -30,8 +34,9 @@ class ASTNodeOperator : public ASTNode {
         : _rhs(rhs), _lhs(lhs){};
 
   protected:
-    std::list<std::shared_ptr<SECDInstruction>> _compile_args() const;
-
+    Result<std::list<std::shared_ptr<SECDInstruction>>> _compile_args(std::shared_ptr<CTEnv>) const;
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+    _compile_op(const std::shared_ptr<SECDInstruction> &, std::shared_ptr<CTEnv>) const;
     std::shared_ptr<ASTNode> _rhs;
     std::shared_ptr<ASTNode> _lhs;
 };
@@ -40,35 +45,40 @@ class ASTNodeAdd : public ASTNodeOperator {
   public:
     ASTNodeAdd(std::shared_ptr<ASTNode> lhs, std::shared_ptr<ASTNode> rhs)
         : ASTNodeOperator(lhs, rhs){};
-    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
 };
 
 class ASTNodeSub : public ASTNodeOperator {
   public:
     ASTNodeSub(std::shared_ptr<ASTNode> lhs, std::shared_ptr<ASTNode> rhs)
         : ASTNodeOperator(lhs, rhs){};
-    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
 };
 
 class ASTNodeMul : public ASTNodeOperator {
   public:
     ASTNodeMul(std::shared_ptr<ASTNode> lhs, std::shared_ptr<ASTNode> rhs)
         : ASTNodeOperator(lhs, rhs){};
-    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
 };
 
 class ASTNodeDiv : public ASTNodeOperator {
   public:
     ASTNodeDiv(std::shared_ptr<ASTNode> lhs, std::shared_ptr<ASTNode> rhs)
         : ASTNodeOperator(lhs, rhs){};
-    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
 };
 
 class ASTNodeCons : public ASTNode {
   public:
     ASTNodeCons(std::shared_ptr<ASTNode> car, std::shared_ptr<ASTNode> cdr)
         : _car(car), _cdr(cdr){};
-    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
 
   private:
     std::shared_ptr<ASTNode> _car;
@@ -79,27 +89,31 @@ class ASTNodeGT : public ASTNodeOperator {
   public:
     ASTNodeGT(std::shared_ptr<ASTNode> lhs, std::shared_ptr<ASTNode> rhs)
         : ASTNodeOperator(lhs, rhs){};
-    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
 };
 
 class ASTNodeLT : public ASTNodeOperator {
   public:
     ASTNodeLT(std::shared_ptr<ASTNode> lhs, std::shared_ptr<ASTNode> rhs)
         : ASTNodeOperator(lhs, rhs){};
-    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
 };
 
 class ASTNodeEQ : public ASTNodeOperator {
   public:
     ASTNodeEQ(std::shared_ptr<ASTNode> lhs, std::shared_ptr<ASTNode> rhs)
         : ASTNodeOperator(lhs, rhs){};
-    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
 };
 
 class ASTNodeIdentifier : public ASTNode {
   public:
     ASTNodeIdentifier(std::string val) : _val(std::move(val)){};
-    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
 
   private:
     std::string _val;
@@ -110,7 +124,8 @@ class ASTNodeIf : public ASTNode {
     ASTNodeIf(std::shared_ptr<ASTNode> cond, std::shared_ptr<ASTNode> tb,
               std::shared_ptr<ASTNode> fb)
         : _cond(cond), _tb(tb), _fb(fb){};
-    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
 
   private:
     std::shared_ptr<ASTNode> _cond;
@@ -120,19 +135,24 @@ class ASTNodeIf : public ASTNode {
 
 class ASTNodeConsOperator : public ASTNode {
   public:
-    ASTNodeConsOperator(std::shared_ptr<ASTNode> cell) : _cons(cell) {};
+    ASTNodeConsOperator(std::shared_ptr<ASTNode> cell) : _cons(cell){};
+
   protected:
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+    _compile(const std::shared_ptr<SECDInstruction> &, std::shared_ptr<CTEnv>) const;
     std::shared_ptr<ASTNode> _cons;
 };
 
 class ASTNodeCar : public ASTNodeConsOperator {
   public:
-    ASTNodeCar(std::shared_ptr<ASTNode> cell) : ASTNodeConsOperator(cell) {};
-    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+    ASTNodeCar(std::shared_ptr<ASTNode> cell) : ASTNodeConsOperator(cell){};
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
 };
 
 class ASTNodeCdr : public ASTNodeConsOperator {
   public:
-    ASTNodeCdr(std::shared_ptr<ASTNode> cell) : ASTNodeConsOperator(cell) {};
-    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+    ASTNodeCdr(std::shared_ptr<ASTNode> cell) : ASTNodeConsOperator(cell){};
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
 };

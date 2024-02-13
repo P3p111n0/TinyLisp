@@ -1,5 +1,6 @@
 #include "Tokenizer.h"
 #include "Parser.h"
+#include "Compiler.h"
 #include "SECD.h"
 #include <iostream>
 
@@ -23,13 +24,14 @@ int main(int argc, const char ** argv) {
         return 1;
     }
 
-    std::list<std::shared_ptr<SECDInstruction>> instructions;
-    for (const auto & node : ast.value()) {
-        instructions.splice(instructions.end(), node->compile());
+    auto code = Compiler::compile(ast.value());
+    if (!code.valid()) {
+        std::cout << code.error() << std::endl;
+        return 1;
     }
 
     SECD secd;
-    auto ret = secd.run(instructions);
+    auto ret = secd.run(code.value());
     if (ret.has_value()) {
         std::cout << ret.value() << std::endl;
         return 1;

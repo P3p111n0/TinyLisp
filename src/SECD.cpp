@@ -2,12 +2,14 @@
 
 std::optional<Error>
 SECD::run(std::list<std::shared_ptr<SECDInstruction>> code) {
+    _runtime.reset();
     _runtime.code = std::move(code);
 
     while (!_runtime.code.empty()) {
         auto inst = _runtime.code.front(); _runtime.code.pop_front();
         std::optional<Error> ret = inst->execute(_runtime);
         if (ret.has_value()) {
+            _runtime.reset();
             return {ret.value()};
         }
     }

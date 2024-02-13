@@ -1,98 +1,148 @@
 #include "ASTNode.h"
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeInt::compile() const {
-    return {std::shared_ptr<SECDInstruction>(new LDC(_val))};
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeInt::compile(std::shared_ptr<CTEnv>) const {
+    return {{std::shared_ptr<SECDInstruction>(new LDC(_val))}};
 }
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeNull::compile() const {
-    return {std::shared_ptr<SECDInstruction>(new NIL())};
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeNull::compile(std::shared_ptr<CTEnv>) const {
+    return {{std::shared_ptr<SECDInstruction>(new NIL())}};
 }
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeOperator::_compile_args() const {
-    auto compiled_lhs = _lhs->compile();
-    auto compiled_rhs = _rhs->compile();
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeOperator::_compile_args(std::shared_ptr<CTEnv> env) const {
+    auto compiled_lhs = _lhs->compile(env);
+    if (!compiled_lhs.valid()) {
+        return compiled_lhs;
+    }
+    auto compiled_rhs = _rhs->compile(env);
+    if (!compiled_rhs.valid()) {
+        return compiled_rhs;
+    }
+
     std::list<std::shared_ptr<SECDInstruction>> res;
-    res.splice(res.end(), compiled_lhs);
-    res.splice(res.end(), compiled_rhs);
+    res.splice(res.end(), compiled_lhs.value());
+    res.splice(res.end(), compiled_rhs.value());
 
     return res;
 }
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeAdd::compile() const {
-    auto result = _compile_args();
-    result.emplace_back(std::shared_ptr<SECDInstruction>(new ADD()));
-    return result;
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeOperator::_compile_op(const std::shared_ptr<SECDInstruction> & inst,
+                             std::shared_ptr<CTEnv> env) const {
+    auto result = _compile_args(env);
+    if (!result.valid()) {
+        return result;
+    }
+    auto code = result.value();
+    code.emplace_back(inst);
+    return code;
 }
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeSub::compile() const {
-    auto result = _compile_args();
-    result.emplace_back(std::shared_ptr<SECDInstruction>(new SUB()));
-    return result;
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeAdd::compile(std::shared_ptr<CTEnv> env) const {
+    return _compile_op(std::shared_ptr<SECDInstruction>(new ADD()), env);
 }
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeMul::compile() const {
-    auto result = _compile_args();
-    result.emplace_back(std::shared_ptr<SECDInstruction>(new MUL()));
-    return result;
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeSub::compile(std::shared_ptr<CTEnv> env) const {
+    return _compile_op(std::shared_ptr<SECDInstruction>(new SUB()), env);
 }
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeDiv::compile() const {
-    auto result = _compile_args();
-    result.emplace_back(std::shared_ptr<SECDInstruction>(new DIV()));
-    return result;
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeMul::compile(std::shared_ptr<CTEnv> env) const {
+    return _compile_op(std::shared_ptr<SECDInstruction>(new MUL()), env);
 }
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeGT::compile() const {
-    auto result = _compile_args();
-    result.emplace_back(std::shared_ptr<SECDInstruction>(new GT()));
-    return result;
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeDiv::compile(std::shared_ptr<CTEnv> env) const {
+    return _compile_op(std::shared_ptr<SECDInstruction>(new DIV()), env);
 }
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeLT::compile() const {
-    auto result = _compile_args();
-    result.emplace_back(std::shared_ptr<SECDInstruction>(new LT()));
-    return result;
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeGT::compile(std::shared_ptr<CTEnv> env) const {
+    return _compile_op(std::shared_ptr<SECDInstruction>(new GT()), env);
 }
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeEQ::compile() const {
-    auto result = _compile_args();
-    result.emplace_back(std::shared_ptr<SECDInstruction>(new EQ()));
-    return result;
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeLT::compile(std::shared_ptr<CTEnv> env) const {
+    return _compile_op(std::shared_ptr<SECDInstruction>(new LT()), env);
 }
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeIf::compile() const {
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeEQ::compile(std::shared_ptr<CTEnv> env) const {
+    return _compile_op(std::shared_ptr<SECDInstruction>(new EQ()), env);
+}
+
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeIf::compile(std::shared_ptr<CTEnv> env) const {
     std::list<std::shared_ptr<SECDInstruction>> res;
-    res.splice(res.end(), _cond->compile());
+    auto cond_code = _cond->compile(env);
+    if (!cond_code.valid()) {
+        return cond_code;
+    }
+    res.splice(res.end(), cond_code.value());
     res.emplace_back(new SEL());
-    auto tb_code = _tb->compile();
-    auto fb_code = _fb->compile();
-//    tb_code.emplace_back(new JOIN());
-//    fb_code.emplace_back(new JOIN());
-    res.emplace_back(new InstructionGlob(tb_code));
-    res.emplace_back(new InstructionGlob(fb_code));
+    auto tb_code = _tb->compile(env);
+    if (!tb_code.valid()) {
+        return tb_code;
+    }
+    auto fb_code = _fb->compile(env);
+    if (!fb_code.valid()) {
+        return fb_code;
+    }
+    //    tb_code.emplace_back(new JOIN());
+    //    fb_code.emplace_back(new JOIN());
+    res.emplace_back(new InstructionGlob(tb_code.value()));
+    res.emplace_back(new InstructionGlob(fb_code.value()));
     return res;
 }
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeIdentifier::compile() const {
-    return {std::shared_ptr<SECDInstruction>(new LD(_val))};
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeIdentifier::compile(std::shared_ptr<CTEnv> env) const {
+    auto idx = env->get(_val);
+    if (!idx.valid()) {
+        return {idx.error()};
+    }
+    return {{std::shared_ptr<SECDInstruction>(new LD(idx.value()))}};
 }
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeCons::compile() const {
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeCons::compile(std::shared_ptr<CTEnv> env) const {
     std::list<std::shared_ptr<SECDInstruction>> res;
-    res.splice(res.end(), _cdr->compile());
-    res.splice(res.end(), _car->compile());
+    auto cdr_code = _cdr->compile(env);
+    if (!cdr_code.valid()) {
+        return cdr_code;
+    }
+    auto car_code = _car->compile(env);
+    if (!car_code.valid()) {
+        return car_code;
+    }
+    res.splice(res.end(), cdr_code.value());
+    res.splice(res.end(), car_code.value());
     res.emplace_back(new CONS());
     return res;
 }
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeCar::compile() const {
-    std::list<std::shared_ptr<SECDInstruction>> res = _cons->compile();
-    res.emplace_back(new CAR());
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeConsOperator::_compile(const std::shared_ptr<SECDInstruction> & inst,
+                              std::shared_ptr<CTEnv> env) const {
+    auto cons_code = _cons->compile(env);
+    if (!cons_code.valid()) {
+        return cons_code;
+    }
+    auto res = cons_code.value();
+    res.emplace_back(inst);
     return res;
 }
 
-std::list<std::shared_ptr<SECDInstruction>> ASTNodeCdr::compile() const {
-    std::list<std::shared_ptr<SECDInstruction>> res = _cons->compile();
-    res.emplace_back(new CDR());
-    return res;
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeCar::compile(std::shared_ptr<CTEnv> env) const {
+    return _compile(std::shared_ptr<SECDInstruction>(new CAR()), env);
+}
+
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeCdr::compile(std::shared_ptr<CTEnv> env) const {
+    return _compile(std::shared_ptr<SECDInstruction>(new CDR()), env);
 }

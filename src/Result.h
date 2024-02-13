@@ -13,7 +13,7 @@ class Result {
         return _valid;
     }
 
-    const T & value() const {
+    T value() const {
         if (!_valid) {
             throw std::runtime_error("Trying to get a value from a non-valid result.");
         }
