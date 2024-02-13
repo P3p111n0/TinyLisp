@@ -155,3 +155,33 @@ std::optional<Error> CONS::execute(SECDRuntime & runtime) const {
     runtime.stack.push(Value::Cons(car, cdr));
     return std::nullopt;
 }
+
+std::optional<Error> CAR::execute(SECDRuntime & runtime) const {
+    if (runtime.stack.size() < 1) {
+        return {RuntimeError("CAR - Not enough arguments")};
+    }
+
+    Value::Value cons = runtime.stack.top(); runtime.stack.pop();
+    if (cons.index() != Value::ValueIndex::ConsCell) {
+        return {RuntimeError("CAR - Cons cell expected.")};
+    }
+
+    Value::Cons cell = std::get<Value::Cons>(cons);
+    runtime.stack.emplace(*cell.car);
+    return std::nullopt;
+}
+
+std::optional<Error> CDR::execute(SECDRuntime & runtime) const {
+    if (runtime.stack.size() < 1) {
+        return {RuntimeError("CDR - Not enough arguments")};
+    }
+
+    Value::Value cons = runtime.stack.top(); runtime.stack.pop();
+    if (cons.index() != Value::ValueIndex::ConsCell) {
+        return {RuntimeError("CDR - Cons cell expected.")};
+    }
+
+    Value::Cons cell = std::get<Value::Cons>(cons);
+    runtime.stack.emplace(*cell.cdr);
+    return std::nullopt;
+}

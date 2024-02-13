@@ -117,3 +117,22 @@ class ASTNodeIf : public ASTNode {
     std::shared_ptr<ASTNode> _tb;
     std::shared_ptr<ASTNode> _fb;
 };
+
+class ASTNodeConsOperator : public ASTNode {
+  public:
+    ASTNodeConsOperator(std::shared_ptr<ASTNode> cell) : _cons(cell) {};
+  protected:
+    std::shared_ptr<ASTNode> _cons;
+};
+
+class ASTNodeCar : public ASTNodeConsOperator {
+  public:
+    ASTNodeCar(std::shared_ptr<ASTNode> cell) : ASTNodeConsOperator(cell) {};
+    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+};
+
+class ASTNodeCdr : public ASTNodeConsOperator {
+  public:
+    ASTNodeCdr(std::shared_ptr<ASTNode> cell) : ASTNodeConsOperator(cell) {};
+    std::list<std::shared_ptr<SECDInstruction>> compile() const override;
+};

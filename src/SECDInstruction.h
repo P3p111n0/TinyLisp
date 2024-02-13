@@ -95,3 +95,13 @@ class CONS : public SECDInstruction {
   public:
     std::optional<Error> execute(SECDRuntime &) const override;
 };
+
+class CAR : public SECDInstruction {
+  public:
+    std::optional<Error> execute(SECDRuntime &) const override;
+};
+
+class CDR : public SECDInstruction {
+  public:
+    std::optional<Error> execute(SECDRuntime &) const override;
+};

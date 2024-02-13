@@ -84,3 +84,15 @@ std::list<std::shared_ptr<SECDInstruction>> ASTNodeCons::compile() const {
     res.emplace_back(new CONS());
     return res;
 }
+
+std::list<std::shared_ptr<SECDInstruction>> ASTNodeCar::compile() const {
+    std::list<std::shared_ptr<SECDInstruction>> res = _cons->compile();
+    res.emplace_back(new CAR());
+    return res;
+}
+
+std::list<std::shared_ptr<SECDInstruction>> ASTNodeCdr::compile() const {
+    std::list<std::shared_ptr<SECDInstruction>> res = _cons->compile();
+    res.emplace_back(new CDR());
+    return res;
+}
