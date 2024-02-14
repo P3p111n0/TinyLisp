@@ -130,3 +130,11 @@ class RTN : public SECDInstruction {
   public:
     std::optional<Error> execute(SECDRuntime &) const override;
 };
+
+class DEFUN : public SECDInstruction {
+  public:
+    DEFUN(std::list<std::shared_ptr<SECDInstruction>> fun) : _fun(std::move(fun)) {};
+    std::optional<Error> execute(SECDRuntime &) const override;
+  private:
+    std::list<std::shared_ptr<SECDInstruction>> _fun;
+};

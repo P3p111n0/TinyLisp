@@ -189,3 +189,14 @@ class ASTNodeFunctionCall : public ASTNode {
     std::shared_ptr<ASTNode> _fun;
     std::list<std::shared_ptr<ASTNode>> _args;
 };
+
+class ASTNodeDefun : public ASTNode {
+  public:
+    ASTNodeDefun(std::shared_ptr<ASTNode> lambda, std::string name)
+        : _lambda(std::move(lambda)), _name(std::move(name)){};
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
+  private:
+    std::shared_ptr<ASTNode> _lambda;
+    std::string _name;
+};

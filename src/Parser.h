@@ -38,6 +38,8 @@ class Parser {
         _parse_cdr(std::list<Token::Token> &);
         static Result<std::shared_ptr<ASTNode>>
         _parse_lambda(std::list<Token::Token> &);
+        static Result<std::shared_ptr<ASTNode>>
+        _parse_defun(std::list<Token::Token> &);
 
         using ParseFunction = std::function<Result<std::shared_ptr<ASTNode>>(
             std::list<Token::Token> &)>;

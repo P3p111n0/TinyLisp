@@ -257,3 +257,13 @@ std::optional<Error> RTN::execute(SECDRuntime & runtime) const {
     runtime.stack.emplace(ret_val);
     return std::nullopt;
 }
+
+std::optional<Error> DEFUN::execute(SECDRuntime & runtime) const {
+    // this part is sketchy
+    auto it = _fun.begin(); // pop LDF
+    std::advance(it, 1);
+    auto lambda_code = *it; // get InstGlob pointer
+    Closure lambda_closure = {lambda_code, std::make_shared<RTEnv>(runtime.env)};
+    runtime.env.add_to_current(lambda_closure); // put lambda in env, where it can get loaded from relevant scopes
+    return std::nullopt;
+}

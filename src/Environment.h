@@ -25,6 +25,7 @@ class RTEnv {
   public:
     RTEnv() = default;
     void add(const std::list<Value::Value> &);
+    void add_to_current(const Value::Value &);
     Result<Value::Value> get(const IndexPair &) const;
     void pop();
   private:

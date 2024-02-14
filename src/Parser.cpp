@@ -20,7 +20,8 @@ std::unordered_map<std::string, Parser::ParserFunctions::ParseFunction>
          }},
         {"car", Parser::ParserFunctions::_parse_car},
         {"cdr", Parser::ParserFunctions::_parse_cdr},
-        {"lambda", Parser::ParserFunctions::_parse_lambda}};
+        {"lambda", Parser::ParserFunctions::_parse_lambda},
+        {"defun", Parser::ParserFunctions::_parse_defun}};
 
 inline bool
 Parser::ParserFunctions::_check_char(const std::list<Token::Token> & tokens,
@@ -295,6 +296,24 @@ Parser::ParserFunctions::_parse_lambda(std::list<Token::Token> & tokens) {
     }
     tokens.pop_front();
     return {std::shared_ptr<ASTNode>(new ASTNodeLambda(args, body))};
+}
+
+Result<std::shared_ptr<ASTNode>>
+Parser::ParserFunctions::_parse_defun(std::list<Token::Token> & tokens) {
+    if (tokens.empty()) {
+        return {ParseError("Defun - function name missing.")};
+    }
+    Token::Token name = tokens.front();
+    tokens.pop_front();
+    if (name.index() != Token::TokenIndex::String) {
+        return {ParseError("Defun - function name should be a string.")};
+    }
+    auto lambda = _parse_lambda(tokens);
+    if (!lambda.valid()) {
+        return lambda;
+    }
+    return {std::shared_ptr<ASTNode>(
+        new ASTNodeDefun(lambda.value(), std::get<std::string>(name)))};
 }
 
 Parser::Parser() : _builtin({"let", "letrec", "lambda", "if", "nil", "cons"}){};

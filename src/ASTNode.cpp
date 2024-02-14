@@ -147,7 +147,8 @@ ASTNodeCdr::compile(std::shared_ptr<CTEnv> env) const {
     return _compile(std::shared_ptr<SECDInstruction>(new CDR()), env);
 }
 
-Result<std::list<std::shared_ptr<SECDInstruction>>> ASTNodeLambda::compile(std::shared_ptr<CTEnv> env) const {
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeLambda::compile(std::shared_ptr<CTEnv> env) const {
     std::shared_ptr<CTEnv> child_env = CTEnv::derive(env);
     for (const auto & id : _args) {
         child_env->add(id);
@@ -168,7 +169,8 @@ Result<std::list<std::shared_ptr<SECDInstruction>>> ASTNodeLambda::compile(std::
     return {res};
 }
 
-Result<std::list<std::shared_ptr<SECDInstruction>>> ASTNodeFunctionCall::compile(std::shared_ptr<CTEnv> env) const {
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeFunctionCall::compile(std::shared_ptr<CTEnv> env) const {
     std::list<std::shared_ptr<SECDInstruction>> res;
     res.emplace_back(new NIL());
     for (const auto & node : _args) {
@@ -186,4 +188,14 @@ Result<std::list<std::shared_ptr<SECDInstruction>>> ASTNodeFunctionCall::compile
     res.splice(res.end(), fun_code.value());
     res.emplace_back(new AP());
     return {res};
+}
+
+Result<std::list<std::shared_ptr<SECDInstruction>>>
+ASTNodeDefun::compile(std::shared_ptr<CTEnv> env) const {
+    env->add(_name);
+    auto lambda = _lambda->compile(env);
+    if (!lambda.valid()) {
+        return lambda;
+    }
+    return {{std::shared_ptr<SECDInstruction>(new DEFUN(lambda.value()))}};
 }

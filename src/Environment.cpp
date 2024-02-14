@@ -33,6 +33,14 @@ void RTEnv::add(const std::list<Value::Value> & env) {
     _env.emplace_front(env);
 }
 
+void RTEnv::add_to_current(const Value::Value & val) {
+    if (_env.empty()) {
+        _env.push_front({val});
+        return;
+    }
+    _env.front().push_back(val);
+}
+
 Result<Value::Value> RTEnv::get(const IndexPair & idx) const {
     size_t i = idx.first;
     size_t j = idx.second;
