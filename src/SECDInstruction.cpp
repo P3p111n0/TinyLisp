@@ -103,12 +103,8 @@ std::optional<Error> EQ::execute(SECDRuntime & runtime) const {
 }
 
 std::optional<Error> InstructionGlob::execute(SECDRuntime & runtime) const {
-    for (const auto & instruction : _inst) {
-        auto ret = instruction->execute(runtime);
-        if (ret.has_value()) {
-            return ret.value();
-        }
-    }
+    auto code = _inst;
+    runtime.code.splice(runtime.code.begin(), code);
     return std::nullopt;
 }
 

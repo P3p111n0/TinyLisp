@@ -12,6 +12,8 @@ std::ostream & Value::operator<<(std::ostream & os, const Value & val) {
         Cons cell = std::get<Cons>(val);
         return os << "( " << *cell.car << " . " << *cell.cdr << " )";
     }
+    case ValueIndex::FunctionClosure:
+        return os << "#<closure>#";
     }
     return os; // this shouldn't happen
 }
