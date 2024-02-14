@@ -22,8 +22,11 @@ std::unordered_map<std::string, Parser::ParserFunctions::ParseFunction>
         {"cdr", Parser::ParserFunctions::_parse_cdr},
         {"lambda", Parser::ParserFunctions::_parse_lambda}};
 
-inline bool Parser::ParserFunctions::_check_char(const std::list<Token::Token> & tokens, char c){
-    return !tokens.empty() && tokens.front().index() == Token::TokenIndex::Char &&
+inline bool
+Parser::ParserFunctions::_check_char(const std::list<Token::Token> & tokens,
+                                     char c) {
+    return !tokens.empty() &&
+           tokens.front().index() == Token::TokenIndex::Char &&
            std::get<char>(tokens.front()) == c;
 }
 
@@ -92,8 +95,16 @@ Parser::ParserFunctions::_parse_ex(std::list<Token::Token> & tokens) {
                 break;
             }
             case ')': {
-                assert(s.size() == 1);
-                return {s.top()};
+                if (s.size() == 1) {
+                    return s.top();
+                }
+                std::list<std::shared_ptr<ASTNode>> args;
+                while (s.size() != 1) {
+                    args.push_back(s.top());
+                    s.pop();
+                }
+                return {std::shared_ptr<ASTNode>(
+                    new ASTNodeFunctionCall(s.top(), args))};
             }
             case '+':
             case '-':
@@ -126,7 +137,7 @@ Parser::ParserFunctions::_parse_ex(std::list<Token::Token> & tokens) {
                     return res.value();
                 }
             } else {
-                return {std::shared_ptr<ASTNode>(new ASTNodeIdentifier(val))};
+                s.push(std::shared_ptr<ASTNode>(new ASTNodeIdentifier(val)));
             }
         }
         }
@@ -265,7 +276,8 @@ Parser::ParserFunctions::_parse_lambda(std::list<Token::Token> & tokens) {
         tokens.pop_front();
     }
     if (tokens.empty()) {
-        return {ParseError("Unexpected end of file while parsing lambda args.")};
+        return {
+            ParseError("Unexpected end of file while parsing lambda args.")};
     }
     tokens.pop_front();
 
@@ -278,7 +290,8 @@ Parser::ParserFunctions::_parse_lambda(std::list<Token::Token> & tokens) {
         body.emplace_back(expr.value());
     }
     if (tokens.empty()) {
-        return {ParseError("Unexpected end of file while parsing lambda body.")};
+        return {
+            ParseError("Unexpected end of file while parsing lambda body.")};
     }
     tokens.pop_front();
     return {std::shared_ptr<ASTNode>(new ASTNodeLambda(args, body))};

@@ -167,7 +167,20 @@ class ASTNodeLambda : public ASTNode {
         : _args(std::move(args)), _body(std::move(body)){};
     Result<std::list<std::shared_ptr<SECDInstruction>>>
         compile(std::shared_ptr<CTEnv>) const override;
+
   private:
     std::list<std::string> _args;
     std::list<std::shared_ptr<ASTNode>> _body;
+};
+
+class ASTNodeFunctionCall : public ASTNode {
+  public:
+    ASTNodeFunctionCall(std::shared_ptr<ASTNode> fun,
+                        std::list<std::shared_ptr<ASTNode>> args)
+        : _fun(fun), _args(std::move(args)){};
+    Result<std::list<std::shared_ptr<SECDInstruction>>>
+        compile(std::shared_ptr<CTEnv>) const override;
+  private:
+    std::shared_ptr<ASTNode> _fun;
+    std::list<std::shared_ptr<ASTNode>> _args;
 };

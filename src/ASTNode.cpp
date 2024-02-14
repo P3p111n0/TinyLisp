@@ -167,3 +167,23 @@ Result<std::list<std::shared_ptr<SECDInstruction>>> ASTNodeLambda::compile(std::
     res.emplace_back(new InstructionGlob(std::move(body_code)));
     return {res};
 }
+
+Result<std::list<std::shared_ptr<SECDInstruction>>> ASTNodeFunctionCall::compile(std::shared_ptr<CTEnv> env) const {
+    std::list<std::shared_ptr<SECDInstruction>> res;
+    res.emplace_back(new NIL());
+    for (const auto & node : _args) {
+        auto code = node->compile(env);
+        if (!code.valid()) {
+            return code;
+        }
+        res.splice(res.end(), code.value());
+        res.emplace_back(new CONS());
+    }
+    auto fun_code = _fun->compile(env);
+    if (!fun_code.valid()) {
+        return fun_code;
+    }
+    res.splice(res.end(), fun_code.value());
+    res.emplace_back(new AP());
+    return {res};
+}
