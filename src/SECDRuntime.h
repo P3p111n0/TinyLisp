@@ -22,5 +22,4 @@ struct SECDRuntime {
     std::list<std::shared_ptr<SECDInstruction>> code;
     std::stack<DumpStruct> dump;
     RTEnv env;
-    void reset();
 };
