@@ -260,10 +260,11 @@ std::optional<Error> RTN::execute(SECDRuntime & runtime) const {
 
 std::optional<Error> DEFUN::execute(SECDRuntime & runtime) const {
     // this part is sketchy
-    auto it = _fun.begin(); // pop LDF
+    auto it = _fun.begin(); // skip LDF
     std::advance(it, 1);
     auto lambda_code = *it; // get InstGlob pointer
     Closure lambda_closure = {lambda_code, std::make_shared<RTEnv>(runtime.env)};
+    lambda_closure.env->add_to_current(lambda_closure); // expose lambda to itself, enables recursion
     runtime.env.add_to_current(lambda_closure); // put lambda in env, where it can get loaded from relevant scopes
     return std::nullopt;
 }
