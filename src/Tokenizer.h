@@ -11,4 +11,5 @@ class Tokenizer {
     Result<std::list<Token::Token>> tokenize(const std::string &) const;
   private:
     std::string _tokenize_string(std::ifstream &) const;
+    void _skip_comment(std::ifstream &) const;
 };

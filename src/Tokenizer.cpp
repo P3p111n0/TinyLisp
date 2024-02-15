@@ -20,6 +20,10 @@ Result<std::list<Token::Token>> Tokenizer::tokenize(const std::string & filename
         }
 
         switch (in.peek()) {
+        case ';': {
+            _skip_comment(in);
+            break;
+        }
         case ')':
         case '(':
         case '+':
@@ -48,4 +52,9 @@ std::string Tokenizer::_tokenize_string(std::ifstream & in) const {
         res += in.get();
     }
     return res;
+}
+
+void Tokenizer::_skip_comment(std::ifstream & is) const {
+    std::string garbage;
+    std::getline(is, garbage);
 }
