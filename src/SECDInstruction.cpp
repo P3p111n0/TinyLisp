@@ -93,12 +93,15 @@ std::optional<Error> LT::execute(SECDRuntime & runtime) const {
 }
 
 std::optional<Error> EQ::execute(SECDRuntime & runtime) const {
-    auto args_res = _get_args(runtime);
-    if (!args_res.valid()) {
-        return {args_res.error()};
+    if (runtime.stack.size() < 2) {
+        return {RuntimeError("Not enough arguments.")};
     }
-    auto args = args_res.value();
-    runtime.stack.emplace(args.lhs == args.rhs);
+    auto rhs = runtime.stack.top();
+    runtime.stack.pop();
+    auto lhs = runtime.stack.top();
+    runtime.stack.pop();
+
+    runtime.stack.emplace(lhs == rhs);
     return std::nullopt;
 }
 
