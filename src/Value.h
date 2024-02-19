@@ -20,4 +20,6 @@ struct Cons {
 
 std::ostream & operator<<(std::ostream & os, const Value & val);
 
+bool operator==(const Value &, const Value &);
+
 } // namespace Value
