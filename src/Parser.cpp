@@ -93,7 +93,7 @@ Parser::ParserFunctions::_parse_ex(std::list<Token::Token> & tokens) {
         case Token::TokenIndex::Char: {
             switch (std::get<char>(token)) {
             case '(': {
-                par_stack.push('(');
+                //par_stack.push('(');
                 if (auto ret = _parse_ex(tokens); ret.valid()) {
                     s.emplace(ret.value());
                 } else {
@@ -105,21 +105,25 @@ Parser::ParserFunctions::_parse_ex(std::list<Token::Token> & tokens) {
                 if (par_stack.empty()) {
                     return {ParseError("Parenthesis mismatch.")};
                 }
+                par_stack.pop();
 
-                if (s.empty()) {
-                    return {ParseError("Malformed program.")};
-                }
+                if (par_stack.empty()) {
+                    if (s.empty()) {
+                        return {ParseError("Malformed program.")};
+                    }
 
-                if (s.size() == 1) {
-                    return s.top();
+                    if (s.size() == 1) {
+                        return s.top();
+                    }
+                    std::list<std::shared_ptr<ASTNode>> args;
+                    while (s.size() != 1) {
+                        args.push_back(s.top());
+                        s.pop();
+                    }
+                    return {std::shared_ptr<ASTNode>(
+                        new ASTNodeFunctionCall(s.top(), args))};
                 }
-                std::list<std::shared_ptr<ASTNode>> args;
-                while (s.size() != 1) {
-                    args.push_back(s.top());
-                    s.pop();
-                }
-                return {std::shared_ptr<ASTNode>(
-                    new ASTNodeFunctionCall(s.top(), args))};
+                break;
             }
             case '+':
             case '-':
