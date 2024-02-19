@@ -46,14 +46,17 @@ Parser::ParserFunctions::_parse_args(std::list<Token::Token> & tokens, int n) {
 
 Result<std::shared_ptr<ASTNode>>
 Parser::ParserFunctions::_parse(std::list<Token::Token> & tokens) {
-    assert(!tokens.empty());
+    if (tokens.empty()) {
+        return {ParseError("Malformed program.")};
+    }
     Token::Token curr = tokens.front();
     tokens.pop_front();
     switch (curr.index()) {
     case Token::TokenIndex::Char: {
         switch (std::get<char>(curr)) {
-        case '(':
+        case '(': {
             return _parse_ex(tokens);
+        }
         case ')':
             return {ParseError("Unpaired closing parenthesis.")};
         }
@@ -81,6 +84,8 @@ Parser::ParserFunctions::_parse(std::list<Token::Token> & tokens) {
 Result<std::shared_ptr<ASTNode>>
 Parser::ParserFunctions::_parse_ex(std::list<Token::Token> & tokens) {
     std::stack<std::shared_ptr<ASTNode>> s;
+    std::stack<char> par_stack;
+    par_stack.push('(');
     while (!tokens.empty()) {
         auto token = tokens.front();
         tokens.pop_front();
@@ -88,6 +93,7 @@ Parser::ParserFunctions::_parse_ex(std::list<Token::Token> & tokens) {
         case Token::TokenIndex::Char: {
             switch (std::get<char>(token)) {
             case '(': {
+                //par_stack.push('(');
                 if (auto ret = _parse_ex(tokens); ret.valid()) {
                     s.emplace(ret.value());
                 } else {
@@ -96,16 +102,28 @@ Parser::ParserFunctions::_parse_ex(std::list<Token::Token> & tokens) {
                 break;
             }
             case ')': {
-                if (s.size() == 1) {
-                    return s.top();
+                if (par_stack.empty()) {
+                    return {ParseError("Parenthesis mismatch.")};
                 }
-                std::list<std::shared_ptr<ASTNode>> args;
-                while (s.size() != 1) {
-                    args.push_back(s.top());
-                    s.pop();
+                par_stack.pop();
+
+                if (par_stack.empty()) {
+                    if (s.empty()) {
+                        return {ParseError("Malformed program.")};
+                    }
+
+                    if (s.size() == 1) {
+                        return s.top();
+                    }
+                    std::list<std::shared_ptr<ASTNode>> args;
+                    while (s.size() != 1) {
+                        args.push_back(s.top());
+                        s.pop();
+                    }
+                    return {std::shared_ptr<ASTNode>(
+                        new ASTNodeFunctionCall(s.top(), args))};
                 }
-                return {std::shared_ptr<ASTNode>(
-                    new ASTNodeFunctionCall(s.top(), args))};
+                break;
             }
             case '+':
             case '-':
@@ -118,14 +136,14 @@ Parser::ParserFunctions::_parse_ex(std::list<Token::Token> & tokens) {
                 if (auto res = _parse_operator(s, op); !res.valid()) {
                     return res;
                 } else {
-                    s.push(res.value());
+                    s.emplace(res.value());
                 }
             }
             }
             break;
         }
         case Token::TokenIndex::Int:
-            s.push(
+            s.emplace(
                 std::shared_ptr<ASTNode>(new ASTNodeInt(std::get<int>(token))));
             break;
         case Token::TokenIndex::String: {
@@ -135,16 +153,22 @@ Parser::ParserFunctions::_parse_ex(std::list<Token::Token> & tokens) {
                 if (auto res = parse_func(tokens); !res.valid()) {
                     return res;
                 } else {
-                    return res.value();
+                    s.emplace(res.value());
                 }
             } else {
-                s.push(std::shared_ptr<ASTNode>(new ASTNodeIdentifier(val)));
+                s.emplace(std::shared_ptr<ASTNode>(new ASTNodeIdentifier(val)));
             }
         }
         }
     }
 
-    assert(s.size() == 1);
+    if (!par_stack.empty()) {
+        return {ParseError("Parenthesis mismatch.")};
+    }
+
+    if (s.size() != 1) {
+        return {ParseError("Malformed program.")};
+    }
     return {s.top()};
 }
 
@@ -173,9 +197,9 @@ Result<std::shared_ptr<ASTNode>> Parser::ParserFunctions::_parse_operator(
         return {std::shared_ptr<ASTNode>(new ASTNodeLT(lhs, rhs))};
     case '=':
         return {std::shared_ptr<ASTNode>(new ASTNodeEQ(lhs, rhs))};
+    default:
+        return {ParseError("Invalid operator.")}; // this shouldn't happen
     }
-
-    return {ParseError("Invalid operator.")}; // this shouldn't happen
 }
 
 Result<std::shared_ptr<ASTNode>>
@@ -192,12 +216,6 @@ Parser::ParserFunctions::_parse_if(std::list<Token::Token> & tokens) {
     auto fb = args_list.front();
     args_list.pop_front();
 
-    if (!_check_char(tokens, ')')) {
-        return {ParseError("If statement missing closing parenthesis.")};
-    }
-
-    tokens.pop_front();
-
     return {std::shared_ptr<ASTNode>(new ASTNodeIf(cond, tb, fb))};
 }
 
@@ -213,12 +231,6 @@ Parser::ParserFunctions::_parse_cons(std::list<Token::Token> & tokens) {
     auto cdr = args_list.front();
     args_list.pop_front();
 
-    if (!_check_char(tokens, ')')) {
-        return {ParseError("Cons missing closing parenthesis.")};
-    }
-
-    tokens.pop_front();
-
     return {std::shared_ptr<ASTNode>(new ASTNodeCons(car, cdr))};
 }
 
@@ -232,12 +244,6 @@ Parser::ParserFunctions::_parse_car(std::list<Token::Token> & tokens) {
     auto cell = args_list.front();
     args_list.pop_front();
 
-    if (!_check_char(tokens, ')')) {
-        return {ParseError("Car missing closing parenthesis.")};
-    }
-
-    tokens.pop_front();
-
     return {std::shared_ptr<ASTNode>(new ASTNodeCar(cell))};
 }
 
@@ -250,12 +256,6 @@ Parser::ParserFunctions::_parse_cdr(std::list<Token::Token> & tokens) {
     auto args_list = args.value();
     auto cell = args_list.front();
     args_list.pop_front();
-
-    if (!_check_char(tokens, ')')) {
-        return {ParseError("Cdr missing closing parenthesis.")};
-    }
-
-    tokens.pop_front();
 
     return {std::shared_ptr<ASTNode>(new ASTNodeCdr(cell))};
 }
@@ -290,11 +290,7 @@ Parser::ParserFunctions::_parse_lambda(std::list<Token::Token> & tokens) {
         }
         body.emplace_back(expr.value());
     }
-    if (tokens.empty()) {
-        return {
-            ParseError("Unexpected end of file while parsing lambda body.")};
-    }
-    tokens.pop_front();
+
     return {std::shared_ptr<ASTNode>(new ASTNodeLambda(args, body))};
 }
 
