@@ -39,6 +39,7 @@ bool Value::operator==(const Value & lhs, const Value & rhs) {
     }
     case ValueIndex::FunctionClosure:
         //TODO
+        //don't know how to compare closures yet :/
         return false;
     default:
         return false;
