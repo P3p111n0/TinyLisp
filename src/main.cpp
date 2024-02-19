@@ -1,41 +1,85 @@
-#include "Tokenizer.h"
+#include "FileTokenizer.h"
+#include "StdinTokenizer.h"
 #include "Parser.h"
 #include "Compiler.h"
 #include "SECD.h"
 #include <iostream>
+#include <cstring>
 
-int main(int argc, const char ** argv) {
-    if (argc < 2) {
-        std::cout << "Filename missing." << std::endl;
-        return 1;
-    }
-
-    Tokenizer t;
-    auto tokens = t.tokenize(argv[1]);
+std::optional<Error> run(const FileTokenizer & t) {
+    auto tokens = t.tokenize();
     if (!tokens.valid()) {
-        std::cout << tokens.error() << std::endl;
-        return 1;
+        return tokens.error();
     }
 
     Parser p;
     auto ast = p.parse(tokens.value());
     if (!ast.valid()) {
-        std::cout << ast.error() << std::endl;
-        return 1;
+        return ast.error();
     }
 
     auto code = Compiler::compile(ast.value());
     if (!code.valid()) {
-        std::cout << code.error() << std::endl;
-        return 1;
+        return code.error();
     }
 
     SECD secd;
     auto ret = secd.run(code.value());
     if (ret.has_value()) {
-        std::cout << ret.value() << std::endl;
-        return 1;
+        return ret;
     }
 
+    return std::nullopt;
+}
+
+std::optional<Error> run(const StdinTokenizer & t) {
+    while (!std::cin.eof()) {
+        std::cout << ">>> ";
+        auto tokens = t.tokenize();
+        if (!tokens.valid()) {
+            return tokens.error();
+        }
+
+        Parser p;
+        auto ast = p.parse(tokens.value());
+        if (!ast.valid()) {
+            return ast.error();
+        }
+
+        auto code = Compiler::compile(ast.value());
+        if (!code.valid()) {
+            return code.error();
+        }
+
+        SECD secd;
+        auto ret = secd.run(code.value());
+        if (ret.has_value()) {
+            return ret;
+        }
+    }
+
+    return std::nullopt;
+}
+
+int main(int argc, const char ** argv) {
+    if (argc == 1) {
+        StdinTokenizer t;
+        while (!std::cin.eof()){
+            if (auto result = run(t); result.has_value()) {
+                std::cout << result.value() << std::endl;
+            }
+        }
+    } else if (argc == 2) {
+        if (!strcmp(argv[1], "-h")) {
+            std::cout << "help" << std::endl; // TODO
+            return 0;
+        } else {
+            FileTokenizer t(argv[1]);
+            if (auto result = run(t); result.has_value()) {
+                std::cout << result.value() << std::endl;
+                return 1;
+            }
+        }
+    }
     return 0;
 }
