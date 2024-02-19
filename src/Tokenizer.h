@@ -6,7 +6,7 @@
 #include <string>
 
 class Tokenizer {
-  public:
+  protected:
     Tokenizer() = default;
     Result<std::list<Token::Token>> tokenize(std::istream &) const;
   private:
