@@ -101,6 +101,11 @@ std::optional<Error> EQ::execute(SECDRuntime & runtime) const {
     auto lhs = runtime.stack.top();
     runtime.stack.pop();
 
+    if (lhs.index() == Value::ValueIndex::FunctionClosure ||
+        rhs.index() == Value::ValueIndex::FunctionClosure) {
+        return {RuntimeError("EQ - Cannot compare functions for equality.")};
+    }
+
     runtime.stack.emplace(lhs == rhs);
     return std::nullopt;
 }

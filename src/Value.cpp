@@ -37,10 +37,14 @@ bool Value::operator==(const Value & lhs, const Value & rhs) {
         bool cdr = *cons_lhs.cdr == *cons_rhs.cdr;
         return car && cdr;
     }
-    case ValueIndex::FunctionClosure:
-        //TODO
-        //don't know how to compare closures yet :/
-        return false;
+    case ValueIndex::FunctionClosure: {
+        // not very useful, but closure comparison is forbidden in the interpreter
+        // anyway
+        Closure lhs_closure = std::get<Closure>(lhs);
+        Closure rhs_closure = std::get<Closure>(rhs);
+        return (lhs_closure.code.get() == rhs_closure.code.get()) &&
+               (lhs_closure.env.get() == rhs_closure.env.get());
+    }
     default:
         return false;
     }
