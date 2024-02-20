@@ -1,11 +1,7 @@
 #include "Tokenizer.h"
 #include <fstream>
 
-Result<std::list<Token::Token>> Tokenizer::tokenize(const std::string & filename) const {
-    std::ifstream in(filename);
-    if (!in.is_open() || in.bad() || in.fail()) {
-        return {ParseError("Couldn't read from file: " + filename)};
-    }
+Result<std::list<Token::Token>> Tokenizer::tokenize(std::istream & in) const {
     std::list<Token::Token> result;
 
     while(!in.eof()) {
@@ -46,7 +42,7 @@ Result<std::list<Token::Token>> Tokenizer::tokenize(const std::string & filename
     return {result};
 }
 
-std::string Tokenizer::_tokenize_string(std::ifstream & in) const {
+std::string Tokenizer::_tokenize_string(std::istream & in) const {
     std::string res;
     while(in.good() && !isspace(in.peek()) && in.peek() != '(' && in.peek() != ')') {
         res += in.get();
@@ -54,7 +50,7 @@ std::string Tokenizer::_tokenize_string(std::ifstream & in) const {
     return res;
 }
 
-void Tokenizer::_skip_comment(std::ifstream & is) const {
+void Tokenizer::_skip_comment(std::istream & is) const {
     std::string garbage;
     std::getline(is, garbage);
 }

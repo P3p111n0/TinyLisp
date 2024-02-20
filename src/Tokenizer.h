@@ -6,10 +6,10 @@
 #include <string>
 
 class Tokenizer {
-  public:
+  protected:
     Tokenizer() = default;
-    Result<std::list<Token::Token>> tokenize(const std::string &) const;
+    Result<std::list<Token::Token>> tokenize(std::istream &) const;
   private:
-    std::string _tokenize_string(std::ifstream &) const;
-    void _skip_comment(std::ifstream &) const;
+    std::string _tokenize_string(std::istream &) const;
+    void _skip_comment(std::istream &) const;
 };
